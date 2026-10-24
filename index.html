@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en"><head><meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"> <link rel="manifest" href="manifest.json">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <script>try{var _s=JSON.parse(localStorage.getItem("hunter_v1"));if(_s&&_s.lvl>=100)document.documentElement.className=_s.lvl>=1000?"rd":"pu"}catch(e){}</script><title>Hunter System</title>
 <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@300;400;600;700&family=Orbitron:wght@500;700&display=swap" rel="stylesheet">
 <style>
@@ -113,6 +113,11 @@ const FORM={push:'Body in a straight line, elbows ~45°. Easier: knee push-up.',
 const RANKS=[[1,'E-Rank'],[100,'D-Rank'],[200,'C-Rank'],[350,'B-Rank'],[500,'A-Rank'],[700,'S-Rank'],[850,'National Level'],[950,'Monarch']];
 const BOSSES=[['Goblin King','👑',1],['Iron Golem','🗿',5],['Venom Spider Queen','🕷️',10],['Orc Warlord','🪓',20],['Shadow Knight','🛡️',40],['Frost Monarch','❄️',80],['Abyssal Dragon','🐉',150],['Shadow Titan','🌑',300],['Celestial Monarch','✨',500],['The Eternal Shadow','👁️',800]];
 const DAILY_CAP=600;
+// ---- Level-scaled workout XP: XP earned = Base Exercise XP x current Hunter Level (level-up requirement need(L) is untouched) ----
+const XP_BASE=7;
+const lvlOf=L=>Math.min(1000,Math.max(1,Math.floor(+L)||1));
+const exXP=L=>XP_BASE*lvlOf(L);
+const dailyCap=()=>DAILY_CAP*lvlOf(S.lvl); // the old 600/day limit scales with level so it cannot cut the new XP
 // Scaling: all clamp at Level 1000 milestones
 const T={
  push:L=>Math.max(1,Math.ceil(L/10)),            // L1000=100
@@ -194,7 +199,7 @@ function plan(){const d=PLAN[dayIdx];const tabs=PLAN.map((p,i)=>`<button class="
  d[1].map(k0=>{const k=sub(k0),ok=exKey(k0),tot=k==='plank'?safe('plank'):safe(ok),sets=3,per=Math.max(1,Math.ceil(tot/sets));
   const off=official(ok);const per2=k==='lunge'?Math.max(1,Math.ceil(per)):per;
   const xp=Math.round(per2*(k==='plank'?XP.plank:XP[k])*10)/10;
-  return `<div class="ex"><div class="row"><b>${NAMES[k]}</b><span class="m">+${xp} XP/set</span></div>
+  return `<div class="ex"><div class="row"><b>${NAMES[k]}</b><span class="m">+${exXP(S.lvl)} XP</span></div>
   <div class="m">${sets} × ${per2}${k==='plank'?'s':''} (safe total ${tot}${k==='plank'?'s':''} · Level target ${off}${k==='plank'?'s':''})</div>
   <div class="m">${FORM[k]||''}</div><div class="sets">${Array.from({length:sets},(_,i)=>{const id=today()+'|'+dayIdx+'|'+k+'|'+i;const dn=S.done[id];
   return `<button class="${dn?'done':''}" ${dn?'disabled':''} onclick="doSet(${dayIdx},'${k}',${i},${per2})">${dn?'✓':'Set '+(i+1)}</button>`}).join('')}<button onclick="rest()">Rest 60s</button></div></div>`}).join('')+`</div>`}
@@ -240,11 +245,16 @@ function doSet(dk,ek,si,reps){
  if(dayState(dk).st!=='open')return; // validated on the data layer
  const sn=snapFor(dk),ex=sn.find(e=>e.k===ek);if(!ex||si<0||si>=ex.sets||reps!==ex.per)return;
  const id=sid(dk,ek,si);if(S.done[id])return;S.done[id]=1;
- const day=today();let xp=Math.round(reps*XP[ek]*10)/10;S.daily[day]=S.daily[day]||0;xp=Math.min(xp,Math.max(0,DAILY_CAP-S.daily[day]));S.daily[day]+=xp;
+ const day=today();
+ // Boss damage keeps the original per-set value and its own daily counter, so boss battles are unchanged.
+ S.dmgDaily[day]=S.dmgDaily[day]||0;let dmg=Math.round(reps*XP[ek]*10)/10;dmg=Math.min(dmg,Math.max(0,DAILY_CAP-S.dmgDaily[day]));S.dmgDaily[day]+=dmg;
+ // Workout XP = 7 x Hunter Level at the moment the exercise is completed (its last set). Paid once per exercise per cycle.
+ const payKey=S.cycle+'|'+dk+'|'+ek;let xp=0;
+ if(!S.xpPaid[payKey]&&Array.from({length:ex.sets},(_,i)=>S.done[sid(dk,ek,i)]).every(Boolean)){S.xpPaid[payKey]=1;S.daily[day]=S.daily[day]||0;xp=Math.round(Math.min(exXP(S.lvl),Math.max(0,dailyCap()-S.daily[day]))*10)/10;S.daily[day]+=xp}
  S.reps+=reps;S.hist.push({d:day,ex:ek,reps,xp,day:PLAN[dk][0],dk,cyc:S.cycle});
  
  let bossWon=null;
- if(S.boss&&!S.boss.rewarded){S.boss.hp=Math.max(0,S.boss.hp-xp*3);
+ if(S.boss&&!S.boss.rewarded){S.boss.hp=Math.max(0,S.boss.hp-dmg*3);
   if(S.boss.hp<=0){S.boss.rewarded=true;const g=1+Math.floor(Math.random()*10);const lv=addLevels(g);S.defeated.push(S.boss.idx);S.bossIdx=S.boss.idx+1;bossWon={lv,boss:BOSSES[S.boss.idx],diff:S.boss.diff};S.boss=null}}
  if(bossWon)bossWon.tt=awardBoss(BOSSES.indexOf(bossWon.boss),bossWon.diff,bossWon.lv.gained);
  const up=addXP(xp);
@@ -267,7 +277,7 @@ function plan(){
  const d=PLAN[dayIdx],sn=snapFor(dayIdx);
  return h+`<div class="card"><h2>${d[0]}</h2><p class="m">Progress saves after every set; leave and resume anytime. Rest 60–90s between sets. Stop if you feel pain, dizziness, or exhaustion.</p>`+
  sn.map((e,j)=>{const k=e.k,ok=exKey(k),pl=k==='plank',xp=Math.round(e.per*XP[k]*10)/10,any=Array.from({length:e.sets},(_,i)=>S.done[sid(dayIdx,k,i)]).some(Boolean);
-  return `<div class="ex"><div class="row"><b>${NAMES[k]}</b><span class="m">+${xp} XP/set</span></div>
+  return `<div class="ex"><div class="row"><b>${NAMES[k]}</b><span class="m">+${exXP(S.lvl)} XP</span></div>
   <div class="m">${e.sets} × ${e.per}${pl?'s':''} (Level target ${official(ok)}${pl?'s':''} · Safe today ${safe(ok)}${pl?'s':''})</div><div class="m">${FORM[k]||''}</div>
   <div class="sets">${Array.from({length:e.sets},(_,i)=>{const dn=S.done[sid(dayIdx,k,i)];return `<button class="${dn?'done':''}" ${dn||st.st!=='open'?'disabled':''} onclick="doSet(${dayIdx},'${k}',${i},${e.per})">${dn?'✓':'Set '+(i+1)}</button>`}).join('')}<button onclick="rest()">Rest 60s</button>${!any&&EASY[k]&&st.st==='open'?`<button onclick="swap(${dayIdx},${j})">Easier</button>`:''}</div></div>`}).join('')+(st.st==='done'?'<p class="m">This day is complete.</p>':'')+`</div>`}
 setInterval(()=>{document.querySelectorAll('[data-cd]').forEach(e=>{const s=dayState(+e.dataset.cd);if(s.st==='open'){render();return}if(s.rem)e.textContent=fmt(s.rem)});
@@ -343,7 +353,7 @@ function questInfo(dk,btn){const d=PLAN[dk],st=dayState(dk),sn=S.snap[S.cycle+'|
  const rows=sn?sn.map(e=>{const n=Array.from({length:e.sets},(_,i)=>S.done[sid(dk,e.k,i)]).filter(Boolean).length,u=e.k==='plank'?'s':'';
   return `<div class="qr"><span>${(e.nm||NAMES[e.k]).replace(' (seconds)','')}</span><span>[${n*e.per}/${e.sets*e.per}${u}]<i class="cb ${n===e.sets?'on':''}${st.st==='open'?'':' lk'}" onclick="tickEx(${dk},'${e.k}')" role="checkbox" aria-checked="${n===e.sets}"></i></span></div>`}).join(''):`<p class="m" data-cds="${dk}" style="text-align:center">${statusLine(dk)}</p>`;
  return `<div class="card"><h2>Quest Info</h2><p class="qh">[Daily Quest: ${d[0]} has arrived.]</p><div class="goal">GOAL</div>${rows}
- <p class="m" style="text-align:center">Quest status: ${qStat(dk)}</p><p class="wn"><u>WARNING</u>: Failure to complete the daily quest will reset your streak.</p><p class="m" style="text-align:center">\ud83d\udd25 ${S.streak} day streak \u00b7 XP today ${Math.floor(S.daily[today()]||0)}/${DAILY_CAP}</p>
+ <p class="m" style="text-align:center">Quest status: ${qStat(dk)}</p><p class="wn"><u>WARNING</u>: Failure to complete the daily quest will reset your streak.</p><p class="m" style="text-align:center">\ud83d\udd25 ${S.streak} day streak \u00b7 XP today ${Math.floor(S.daily[today()]||0)}/${dailyCap()}</p>
  ${btn?'<p style="text-align:center"><button class="pri" onclick="tab=\'plan\';render()">Open training plan</button></p>':''}</div>`}
 try{const st=document.createElement('style');st.textContent=`html,body{background:#000!important}
 body{padding:40px 30px 150px}
@@ -443,7 +453,7 @@ function plan(){
  <div class="sets"><button onclick="rest(45)">Rest 45s</button><button onclick="rest(60)">Rest 60s</button><button onclick="rest(90)">Rest 90s</button><button onclick="easyAll()">${S.easyAll?'Easy mode: ON':'Easy mode: OFF'}</button><button onclick="pauseW()">Pause</button></div>`+
  sn.map((e,jj)=>{const df=DAYS[dayIdx][e.j],u=e.unit,xp=Math.round(e.per*XP[e.k]*10)/10,nx=calc(df,e.hv,e.ez,Math.min(1000,S.lvl+1)),n=Array.from({length:e.sets},(_,i)=>S.done[sid(dayIdx,e.k,i)]).filter(Boolean).length,any=n>0,cap=!e.hv&&df.lo+5*(S.lvl-1)>=df.cap;
  const lab=i=>e.side?`Set ${Math.floor(i/2)+1} ${i%2?'Right':'Left'}`:'Set '+(i+1);
- return `<div class="ex"><div class="row"><b>${e.nm}</b><span class="m">+${xp} XP/set</span></div>
+ return `<div class="ex"><div class="row"><b>${e.nm}</b><span class="m">+${exXP(S.lvl)} XP</span></div>
  <div class="m">${df.sets} sets × ${e.per}${u}${e.side?' per side':''}${e.ez?' (easy)':''} · Now ${e.per}${u} → Next level ${nx}${u}</div><div class="m">${df.inst}</div>
  ${cap?`<div class="m" style="color:#ffcc33">Safety limit reached (${df.cap}${u}). Try the harder variation: ${df.hard}.</div>`:''}
  <div class="sets">${Array.from({length:e.sets},(_,i)=>{const dn=S.done[sid(dayIdx,e.k,i)];return `<button class="${dn?'done':''}" ${dn||st.st!=='open'?'disabled':''} onclick="doSet(${dayIdx},'${e.k}',${i},${e.per})">${dn?'✓ ':''}${lab(i)}</button>`}).join('')}</div>
@@ -485,7 +495,7 @@ function tickEx(dk,ek){const st=dayState(dk);if(st.st==='locked')return rerr('TR
  if(st.st!=='open')return rerr('ALREADY COMPLETED','This day is already complete.','done');
  if(redeeming)return 'busy';const e=snapFor(dk).find(x=>x.k===ek);if(!e)return 'none';const rem=openSlots(dk,e);
  if(!rem.length)return rerr('ALREADY COMPLETED',(e.nm||ek)+' is already finished. Completed exercises stay ticked.','done');
- const xp=Math.round(rem.length*e.per*XP[e.k]*10)/10;
+ const xp=S.xpPaid[S.cycle+'|'+dk+'|'+ek]?0:exXP(S.lvl);
  sys(`<h3>MARK EXERCISE COMPLETE</h3><p>${esc(e.nm)}</p><p class="m">${rem.length} remaining set${rem.length>1?'s':''} × ${e.per}${e.unit}${e.side?' (both sides)':''} · up to +${xp} XP</p><p class="m">Only confirm if you really did them.</p><p><button onclick="closeSys()">Cancel</button></p>`,()=>{redeeming=false;runTick(dk,ek)});
  redeeming=true;return 'confirm'}
 function runTick(dk,ek){const e=snapFor(dk).find(x=>x.k===ek);if(!e||dayState(dk).st!=='open')return 0;const real=sys,q=[];let n=0;
@@ -598,7 +608,7 @@ function grantGod(key,cfg){const left=BOSSES.map((b,i)=>i).filter(i=>!S.defeatLo
  recRedeem(cfg,{code:key,levels:0,gained:S.lvl-from,xp:0,at:Date.now(),from,to:S.lvl,bosses:left.length});save();render();
  sys('<h3>'+esc(cfg.done[0])+'</h3><p class="m">'+left.length+' boss'+(left.length>1?'es':'')+' defeated · '+titles+' title'+(titles===1?'':'s')+' earned · Level '+from+' → '+S.lvl+'</p><div class="big">'+S.lvl+'</div>');return true}
 // ===== v16: a used code stays used until the clear code is redeemed =====
-{const D={done:{},daily:{},hist:[],defeated:[],defeatLog:[],titles:{},snap:{},xp:0,total:0,streak:0,best:0,last:'',reps:0,bossIdx:0,start:Date.now(),exp:'beginner',bar:true};
+{const D={done:{},daily:{},hist:[],defeated:[],defeatLog:[],titles:{},snap:{},xp:0,total:0,streak:0,best:0,last:'',reps:0,bossIdx:0,start:Date.now(),exp:'beginner',bar:true,xpPaid:{},dmgDaily:{}};
  for(const k in D){const v=S[k],d=D[k];if(v==null||typeof v!==typeof d||Array.isArray(v)!==Array.isArray(d))S[k]=d}} // old or partly damaged saves get safe defaults instead of crashing
 if(!Array.isArray(S.redeemLog))S.redeemLog=S.redeemed.slice(); // permanent history; S.redeemed = codes currently used
 function recRedeem(cfg,entry){S.redeemLog.push(entry);if(cfg.reset)S.redeemed=[];else S.redeemed.push(entry)} // clear frees every code (and is never marked used itself)
