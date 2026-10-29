@@ -1176,12 +1176,9 @@ html.pu{--qfa:url(data:image/webp;base64,UklGRgqZAgBXRUJQVlA4WAoAAAAQAAAAbwEAjQI
 #vcm{width:42px;height:42px;border-image-width:16px}#vcm svg{width:17px;height:17px}#vcm.on::after{inset:-5px}
 </style>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
-<g id="sh-sol"><circle cx="20" cy="14" r="8" fill="#04020a"/><path d="M5 100L8 42Q10 26 20 24Q30 26 32 42L35 100Z" fill="#04020a"/><rect x="15" y="12" width="3.4" height="2" style="fill:var(--k12,#9ad6ff)"/><rect x="21.6" y="12" width="3.4" height="2" style="fill:var(--k12,#9ad6ff)"/></g>
-<g id="sh-beru"><path d="M70 120Q0 60 20 10Q60 40 84 110Z" fill="#0a0418" opacity=".6"/><path d="M130 120Q200 60 180 10Q140 40 116 110Z" fill="#0a0418" opacity=".6"/><path d="M62 140Q20 150 18 205Q40 172 68 172Z" fill="#04020a"/><path d="M138 140Q180 150 182 205Q160 172 132 172Z" fill="#04020a"/><ellipse cx="100" cy="150" rx="38" ry="52" fill="#04020a"/><ellipse cx="100" cy="74" rx="30" ry="27" fill="#04020a"/><path d="M78 90Q48 102 40 60Q62 80 84 80Z" fill="#04020a"/><path d="M122 90Q152 102 160 60Q138 80 116 80Z" fill="#04020a"/><path d="M86 50Q70 8 38 12M114 50Q130 8 162 12" stroke="#04020a" stroke-width="4" fill="none"/><circle cx="88" cy="68" r="5" fill="#ff2a3a"/><circle cx="112" cy="68" r="5" fill="#ff2a3a"/></g>
-<g id="sh-igris"><path d="M60 108Q18 200 30 258L72 232Z" fill="#06030f"/><path d="M140 108Q182 200 170 258L128 232Z" fill="#06030f"/><path d="M62 110L138 110L130 205L70 205Z" fill="#04020a"/><rect x="72" y="205" width="22" height="52" fill="#04020a"/><rect x="106" y="205" width="22" height="52" fill="#04020a"/><ellipse cx="56" cy="114" rx="28" ry="19" fill="#0a0518"/><ellipse cx="144" cy="114" rx="28" ry="19" fill="#0a0518"/><path d="M70 72Q70 22 100 16Q130 22 130 72L124 98L76 98Z" fill="#04020a"/><path d="M100 16Q122 -6 152 8Q132 22 112 26Z" fill="#7a0f24"/><rect x="80" y="58" width="40" height="6" fill="#ff2a3a"/><path d="M164 70L174 70L178 238L170 252L162 238Z" fill="#9fb8ff" opacity=".9"/></g>
 </defs></svg>
 <button id="vcm" type="button" aria-label="Voice command" title="Voice command"><svg viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0014 0M12 18v3M9 21h6"/></svg></button>
-<div id="vcp" role="status" aria-live="polite"><div class="st">SYSTEM VOICE</div><div class="tx"></div><div class="hn">Say: ARISE &middot; BERU &middot; IGRIS &middot; SHADOW ARMY &middot; DISMISS &middot; SYSTEM</div><button type="button" id="vcx">STOP</button></div>
+<div id="vcp" role="status" aria-live="polite"><div class="st">SYSTEM VOICE</div><div class="tx"></div><div class="hn">Say: ARISE &middot; SHADOW ARMY &middot; DISMISS &middot; SYSTEM</div><button type="button" id="vcx">STOP</button></div>
 <div id="shl"></div>
 <script id="hx-army-img">
 /* Shadow Army PNGs: your uploaded files, embedded byte-for-byte (no resize/re-encode) so no file path is needed */
@@ -1205,8 +1202,6 @@ function snd(k){try{if(S.sfxOff)return;var a=ax();if(!a)return;var n=performance
  else if(k==='ok'){os(a,'triangle',700,1050,t,.1,.05)}
  else if(k==='err'){os(a,'sawtooth',160,90,t,.3,.05)}
  else if(k==='arise'){os(a,'sine',58,36,t,2.2,.22);nz(a,t,2.4,.12,200,2400);[110,165,220,277].forEach(function(f,i){os(a,'sawtooth',f,f*1.01,t+.3+i*.12,2,.025);os(a,'sine',f*2,f*2.02,t+.5+i*.1,1.8,.02)})}
- else if(k==='beru'){for(var i=0;i<7;i++)os(a,'square',1800+i*90,900,t+i*.05,.04,.03);os(a,'sawtooth',1100,300,t+.4,.7,.045);os(a,'sine',70,40,t,.9,.18);nz(a,t,.8,.06,900,3000)}
- else if(k==='igris'){os(a,'sine',620,610,t,1.2,.07);os(a,'square',1240,1220,t,.9,.03);nz(a,t,.25,.1,3000,6000);os(a,'sawtooth',82,70,t+.1,1.6,.07);os(a,'sine',50,38,t,1.4,.2)}
  else if(k==='dismiss'){nz(a,t,1,.1,3000,200);os(a,'sine',400,45,t,1,.07)}}catch(e){}}
 /* ---- UI helpers ---- */
 function say(t,cls){tx.textContent=t||'';pan.classList.add('show');if(cls!==undefined)st.textContent=cls}
@@ -1237,28 +1232,23 @@ function match(t){t=' '+t.replace(/[^a-z ]/g,' ').replace(/\s+/g,' ')+' ';
  if(/ (dismiss|dismissed|dismis|dis miss) /.test(t))return 'dismiss';
  if(/ shadow (army|armies|arm[iy]) /.test(t))return 'armyui';
  if(/ (arise|arize|a rise|a rice|arrives?) /.test(t))return 'arise';
- if(/ (igris|igrees|igrus|agris|ee gris|egris|ig ris) /.test(t))return 'igris';
- if(/ (beru|baru|beroo|bayroo|beyru|bay roo|bheru|berew) /.test(t))return 'beru';
  if(/ system /.test(t))return 'system';
  return null}
 function run(c){var n=Date.now();if(c===lastCmd&&n-lastT<2500)return;lastCmd=c;lastT=n;
- if(c==='arise')summon('army');else if(c==='beru')summon('beru');else if(c==='igris')summon('igris');
+ if(c==='arise')summon('army');
  else if(c==='dismiss')dismiss();else if(c==='armyui')armyUI();else if(c==='system')sysUI()}
 /* ---- shadows ---- */
-var INFO={army:['ARISE','[ SHADOW ARMY SUMMONED · BOSS DAMAGE ×2 ]','arise'],beru:['BERU','[ ANT KING SUMMONED ]','beru'],igris:['IGRIS','[ KNIGHT COMMANDER SUMMONED ]','igris']};
-function fig(type,vb,css,delay,z){var d=D.createElement('div');d.className='shf';d.dataset.s=type==='sol'?'army':type;d.style.cssText=css+';animation-delay:'+delay+'s;z-index:'+z;d.innerHTML='<svg viewBox="'+vb+'"><use href="#sh-'+type+'"/></svg>';return d}
-function summon(k){if(sum[k]||busy[k]){say(INFO[k][0]==='ARISE'?'The Shadow Army is already standing.':INFO[k][0]+' is already summoned.');hideSoon(2500);return}
+var INFO={army:['ARISE','[ SHADOW ARMY SUMMONED · BOSS DAMAGE ×2 ]','arise']};
+function summon(k){if(k!=='army')return;if(sum[k]||busy[k]){say('The Shadow Army is already standing.');hideSoon(2500);return}
  busy[k]=1;sum[k]=1;snd(INFO[k][2]);
  var o=D.createElement('div');o.id='shi';o.innerHTML='<div class="ms"></div><div class="rn"></div><div class="t">'+INFO[k][0]+'</div><div class="s">'+INFO[k][1]+'</div>';
  for(var i=0;i<12;i++){var p=D.createElement('i');p.style.left=(6+i*8)+'%';p.style.animationDelay=(i*.22)+'s';o.appendChild(p)}
  var old=$('shi');if(old)old.remove();D.body.appendChild(o);setTimeout(function(){o.remove();busy[k]=0},3300);
- if(k==='army')armyShow();
- else if(k==='beru')shl.appendChild(fig('beru','0 0 200 220','right:4%;bottom:78px;height:30vh;width:27vh',1,4));
- else shl.appendChild(fig('igris','0 0 200 260','left:6%;bottom:78px;height:36vh;width:28vh',1,5));
+ armyShow();
  say(INFO[k][1],'SYSTEM VOICE');hideSoon(3500)}
 /* ---- Shadow Army: exactly 2 PNG soldiers + x2 boss damage flag ---- */
 function armyClear(){var a=shl.querySelectorAll('.sa');for(var i=0;i<a.length;i++)a[i].remove()}
-function armyShow(){armyClear();var w=D.createElement('div');w.className='shf sa';w.dataset.s='army';w.style.animationDelay='.9s';
+function armyShow(){shl.textContent='';var w=D.createElement('div');w.className='shf sa';w.dataset.s='army';w.style.animationDelay='.9s';
  for(var i=0;i<2;i++){var m=D.createElement('img');m.src=(window.HXARMY_IMG||[])[i]||'';m.alt='Shadow soldier '+(i+1);m.draggable=false;w.appendChild(m)}
  shl.appendChild(w)}
 function armyEnd(){if(!sum.army)return;sum.army=0;var a=shl.querySelectorAll('.sa');for(var i=0;i<a.length;i++)a[i].classList.add('out');setTimeout(function(){if(!sum.army)armyClear()},950)}
@@ -1268,7 +1258,7 @@ function dismiss(){var f=shl.children;if(!f.length){say('No shadows are currentl
  var o=D.createElement('div');o.id='shi';o.innerHTML='<div class="ms"></div><div class="s" style="margin:0">[ SHADOWS DISMISSED ]</div>';o.style.animationDuration='1.8s';var old=$('shi');if(old)old.remove();D.body.appendChild(o);setTimeout(function(){o.remove()},1900);
  setTimeout(function(){if(!sum.army&&!sum.beru&&!sum.igris)shl.innerHTML=''},950);say('[ SHADOWS DISMISSED ]','SYSTEM VOICE');hideSoon(2500)}
 function st2(k){return sum[k]?'SUMMONED':'DORMANT'}
-function armyUI(){snd('ok');try{sys('<h3>SHADOW ARMY</h3><p class="m">Igris &mdash; Knight Commander &middot; <b>'+st2('igris')+'</b></p><p class="m">Beru &mdash; Ant King &middot; <b>'+st2('beru')+'</b></p><p class="m">Shadow Soldiers &mdash; Army &middot; <b>'+st2('army')+'</b></p><p class="m">Say ARISE, BERU, IGRIS or DISMISS.</p>')}catch(e){}}
+function armyUI(){snd('ok');try{sys('<h3>SHADOW ARMY</h3><p class="m">Status: <b>'+st2('army')+'</b>'+(sum.army?' &middot; Boss damage ×2':'')+'</p><p class="m">Say ARISE to summon or DISMISS to send them away.</p>')}catch(e){}}
 function sysUI(){snd('ok');try{tab='home';render();sys('<h3>SYSTEM ONLINE</h3><p class="m">Hunter: '+String(S.name||'Hunter').replace(/[<>&]/g,'')+'</p><p class="m">Level '+S.lvl+' &middot; Streak '+(S.streak||0)+' days</p>')}catch(e){}}
 /* ---- wiring (one listener each; removed on stop) ---- */
 mic.addEventListener('click',function(){on?stop():start()});
